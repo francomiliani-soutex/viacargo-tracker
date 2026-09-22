@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: viacargo-tracker
+    env: node
+    plan: free
+    buildCommand: "npm install && npx puppeteer browsers install chrome"
+    startCommand: "node index.js"
+    envVars:
+      - key: API_KEY
+        sync: false

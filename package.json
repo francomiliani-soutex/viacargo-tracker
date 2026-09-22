@@ -1,0 +1,17 @@
+{
+  "name": "viacargo-tracker",
+  "version": "1.0.0",
+  "description": "API de seguimiento de Via Cargo (scraping con navegador headless) para Soutex",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "puppeteer": "^22.15.0",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
