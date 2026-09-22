@@ -165,8 +165,23 @@ app.get('/track/:numero', requireApiKey, async (req, res) => {
     });
 
   } catch (err) {
+    let screenshotBase64 = null;
+    let htmlSnippet = null;
+    try {
+      if (page) {
+        const buffer = await page.screenshot({ encoding: 'base64', fullPage: false });
+        screenshotBase64 = buffer;
+        htmlSnippet = (await page.content()).substring(0, 1500);
+      }
+    } catch (_) {}
     if (page) { try { await page.close(); } catch (_) {} }
-    return res.status(500).json({ error: true, mensaje: 'Error consultando Via Cargo: ' + err.message, numero });
+    return res.status(500).json({
+      error: true,
+      mensaje: 'Error consultando Via Cargo: ' + err.message,
+      numero,
+      debugScreenshotBase64: screenshotBase64,
+      debugHtmlSnippet: htmlSnippet
+    });
   }
 });
 
