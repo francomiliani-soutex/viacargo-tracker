@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || null; // si no se define, la API queda abierta (solo para pruebas)
 
 const URL_SEGUIMIENTO = 'https://formularios.viacargo.com.ar/seguimiento-envio/';
-const TIMEOUT_MS = 45000;
+const TIMEOUT_MS = 90000;
 
 let browserInstance = null;
 
@@ -72,6 +72,18 @@ app.get('/track/:numero', requireApiKey, async (req, res) => {
     page = await browser.newPage();
     await page.setDefaultTimeout(TIMEOUT_MS);
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36');
+
+    // Bloqueamos imágenes/CSS/fuentes: no las necesitamos y el plan free
+    // de Render tiene muy poca CPU, así que cada recurso de menos ayuda.
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const tipo = req.resourceType();
+      if (['image', 'stylesheet', 'font', 'media'].includes(tipo)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
     await page.goto(URL_SEGUIMIENTO, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
 
