@@ -16,7 +16,8 @@
 
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 
 const app = express();
 app.use(cors());
@@ -32,14 +33,10 @@ let browserInstance = null;
 async function getBrowser() {
   if (browserInstance && browserInstance.isConnected()) return browserInstance;
   browserInstance = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--single-process',
-      '--no-zygote'
-    ]
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless
   });
   return browserInstance;
 }
