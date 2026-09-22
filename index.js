@@ -165,13 +165,22 @@ app.get('/track/:numero', requireApiKey, async (req, res) => {
     });
 
   } catch (err) {
-    let screenshotBase64 = null;
-    let htmlSnippet = null;
+    let diagnostico = null;
     try {
       if (page) {
-        const buffer = await page.screenshot({ encoding: 'base64', fullPage: false });
-        screenshotBase64 = buffer;
-        htmlSnippet = (await page.content()).substring(0, 1500);
+        diagnostico = await page.evaluate(() => {
+          const texto = document.body.innerText || '';
+          return {
+            titulo: document.title,
+            url: window.location.href,
+            longitudTexto: texto.length,
+            primeros300: texto.substring(0, 300),
+            hayInputs: document.querySelectorAll('input').length,
+            hayCloudflare: /cloudflare|attention required|just a moment/i.test(texto) || /cloudflare|attention required|just a moment/i.test(document.title),
+            hayCaptcha: /captcha|recaptcha|no soy un robot/i.test(texto),
+            hayAccesoDenegado: /acceso denegado|access denied|forbidden|blocked/i.test(texto)
+          };
+        });
       }
     } catch (_) {}
     if (page) { try { await page.close(); } catch (_) {} }
@@ -179,8 +188,7 @@ app.get('/track/:numero', requireApiKey, async (req, res) => {
       error: true,
       mensaje: 'Error consultando Via Cargo: ' + err.message,
       numero,
-      debugScreenshotBase64: screenshotBase64,
-      debugHtmlSnippet: htmlSnippet
+      diagnostico
     });
   }
 });
