@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || null; // si no se define, la API queda abierta (solo para pruebas)
 
 const URL_SEGUIMIENTO = 'https://formularios.viacargo.com.ar/seguimiento-envio/';
-const TIMEOUT_MS = 25000;
+const TIMEOUT_MS = 45000;
 
 let browserInstance = null;
 
@@ -73,11 +73,12 @@ app.get('/track/:numero', requireApiKey, async (req, res) => {
     await page.setDefaultTimeout(TIMEOUT_MS);
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36');
 
-    await page.goto(URL_SEGUIMIENTO, { waitUntil: 'networkidle2' });
+    await page.goto(URL_SEGUIMIENTO, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
 
-    // Input del número de envío (Angular Material)
-    const inputSelector = 'input[type="number"], input[matinput]';
-    await page.waitForSelector(inputSelector, { visible: true });
+    // Input del número de envío (Angular Material) — esperamos con más margen
+    // porque el arranque en frío del plan free es lento.
+    const inputSelector = 'input[type="number"], input[matinput], input.mat-input-element, mat-form-field input';
+    await page.waitForSelector(inputSelector, { visible: true, timeout: TIMEOUT_MS });
     await page.click(inputSelector);
     await page.type(inputSelector, numero, { delay: 30 }); // .type() dispara los eventos que Angular necesita
 
